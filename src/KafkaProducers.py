@@ -3,7 +3,7 @@ import csv
 
 
 class KafkaGenericProducer(object):
-    def __init__(self, schema_id, settings, topic, broker, serializer):
+    def __init__(self, schema_id, settings, topic, broker, serializer, debug=False):
         self.schema_id = schema_id
         self.topic = topic
         self.broker = broker
@@ -15,6 +15,8 @@ class KafkaGenericProducer(object):
         self.fieldnames = settings['FIELDNAMES'].split(',')
         self.float_fields = settings['FLOAT_FIELDS'].split(',')
         self.int_fields = settings['INT_FIELDS'].split(',')
+        self.debug = debug
+        self.process_count = 0
 
     def process(self):
         if self.source_type == 'csv':
@@ -23,13 +25,13 @@ class KafkaGenericProducer(object):
             raise NotImplementedError('Only csv sources have been implemented so far')
 
     def _process_csv_file(self):
-
         producer = Producer({'bootstrap.servers': self.broker})
 
         try:
             csvfile = open(self.source_location)
         except IOError:
             print "Could not read file: ", self.source_location
+            raise IOError
 
         with csvfile:
             fieldnames = self.fieldnames
@@ -37,14 +39,17 @@ class KafkaGenericProducer(object):
             next(reader, None)  # Skipping the header
 
             # Main loop -- Prints a status every 1000 rows
-            cnt = 0
             for row in reader:
-                if cnt % 1000 == 0:
-                    print "Processed {0} rows".format(cnt)
+                if self.process_count % 1000 == 0:
+                    print "Processed {0} rows".format(self.process_count)
                 for field in self.int_fields:
                     row[field] = int(row[field])
                 for field in self.float_fields:
                     row[field] = float(row[field])
                 encoded = self.serializer.encode_record_with_schema_id(self.schema_id, row)
                 producer.produce(self.topic, encoded)
-                cnt += 1
+                self.process_count += 1
+            producer.flush()
+
+    def get_processed_count(self):
+        return self.process_count

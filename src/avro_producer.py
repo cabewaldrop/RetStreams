@@ -36,6 +36,7 @@ if __name__ == '__main__':
     serializer = MessageSerializer(client)
     topic = kafka_settings['TOPIC']
 
+    print "Schema_id: {0}, topic: {1}, broker: {2}".format(schema_id, topic, kafka_broker_url)
     worker = KafkaGenericProducer(schema_id=schema_id, settings=source_settings,
                                   topic=topic, broker=kafka_broker_url, serializer=serializer)
     worker.process()

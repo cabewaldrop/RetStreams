@@ -18,6 +18,8 @@ class KafkaGenericConsumer(object):
                                   'default.topic.config': {'auto.offset.reset': self.offset_reset}})
         self.consumer.subscribe([self.topic])
 
+        print "Topic: {0}, ConsumerGroup: {1}, Offset: {2}".format(self.topic, self.consumer_group, self.offset_reset)
+
     def parse_db_settings(self, db_settings):
         self.db_host = db_settings['host']
         self.db_user = db_settings['user']

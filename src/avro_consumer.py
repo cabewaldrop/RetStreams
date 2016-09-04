@@ -41,8 +41,8 @@ if __name__ == '__main__':
     offset_reset = kafka_settings['OFFSET_RESET']
 
     # Unpack target settings
-    consumer_group = target_settings['CONSUMER_GROUP']
-
+    consumer_group = kafka_settings['CONSUMER_GROUP']
+    print "Schema: {0}, topic: {1}, broker: {2}".format(schema_id, topic, kafka_broker_url)
     worker = KafkaGenericConsumer(schema_id=schema_id, settings=target_settings, topic=topic, offset_reset=offset_reset,
                                   broker=kafka_broker_url, consumer_group=consumer_group, serializer=serializer)
     worker.process()
